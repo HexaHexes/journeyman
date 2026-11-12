@@ -1,0 +1,20 @@
+{
+  "profession.journeyman.smith": "Smith",
+  "profession.journeyman.enchanter": "Enchanter",
+  "profession.journeyman.alchemist": "Alchemist",
+  "profession.journeyman.fisherman": "Fisherman",
+  "profession.journeyman.miner": "Miner",
+  "profession.journeyman.lumberjack": "Lumberjack",
+  "profession.journeyman.digger": "Digger",
+  "profession.journeyman.farmer": "Farmer",
+  "profession.journeyman.hunter": "Hunter",
+  "profession.journeyman.builder": "Builder",
+  "profession.journeyman.melee": "Melee",
+  "profession.journeyman.armor": "Armor",
+  "profession.journeyman.ranged": "Ranged",
+  "profession.journeyman.cook": "Cook",
+  "profession.journeyman.rancher": "Rancher",
+  "profession.journeyman.riding": "Riding",
+  "profession.journeyman.jewelrer": "Jewelrer",
+  "profession.journeyman.arcanist": "Arcanist"
+}

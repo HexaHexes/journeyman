@@ -23,12 +23,21 @@ the bonus, grant the XP. Mechanics source of truth: `docs/SKILLS.md`.
   wave as an optional compat module, availability-gated the way AGENTS
   requires. The mod never gains a hard dependency on any of them.
 
-**Test:** `./gradlew runGameTestServer` — `JourneymanGameTests` (1 test).
-`expectedTests = 1` in `build.gradle` must match the `@GameTest` count.
+**Test:** `./gradlew runGameTestServer` — `JourneymanGameTests` and
+`JourneymanEngineGameTests` (7 tests). `expectedTests = 7` in `build.gradle`
+must match the `@GameTest` count.
+
+**Artifacts:** two publications from one repo. `journeyman` is the mod jar and
+**embeds the api classes**; `journeyman_api` is the pure-Java read side other
+mods compile against (`compileOnly`), resolved at runtime through
+`ServiceLoader` — the services file ships inside the mod jar.
 
 **Gotchas**
 - The RuneScape curve is the single pacing source, and it is spec, not tuning:
   `docs/SKILLS.md` fixes level 99 at 13,034,431 XP and the GameTest asserts it.
+  The floor placement is part of the spec: each term `l + 300·2^(l/7)` is
+  floored, the terms are **summed**, and the total is divided by four and
+  floored - a per-term division gives 275 at level 4 where the canon says 276.
   Never hand-adjust curve constants in code.
 - **No-slots doctrine:** all 18 professions progress concurrently. Never
   reintroduce a selection or slot model - gates, not slots, are the
@@ -42,7 +51,16 @@ the bonus, grant the XP. Mechanics source of truth: `docs/SKILLS.md`.
 - `builder` is data-disabled by default (`enabled = false` in its definition).
   Re-enabling it is a datapack change, not code.
 - Wave doctrine: intake listeners arrive one wave at a time and **all** XP
-  flows through the single grant funnel - no side doors.
+  flows through `ProfessionEngine.grant(...)` - no side doors. Events are
+  observability, not control: they are not cancellable.
+- **The `api` source set stays pure Java** - no Minecraft types - so the
+  `journeyman_api` jar carries no platform weight. It is listed in the
+  `neoForge.mods` block alongside main and gametest: dev runs load source-set
+  outputs from the mod path, and a bare classpath line does NOT put the api
+  classes in front of the GameTest server (that cost a debugging round).
+- The services file (`META-INF/services/...JourneymanApi`) lives in main and
+  must name the impl FQCN - part of the rename checklist if the package ever
+  moves.
 - Client-array mixins load nowhere in CI (gametests run a dedicated server):
   never `@Shadow` inherited Minecraft members, and launch `runClient` once
   before a release - full rules in `docs/mixin-rules.md`.

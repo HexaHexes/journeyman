@@ -3,6 +3,10 @@ package org.bitwisemadness.journeyman;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import org.bitwisemadness.journeyman.command.JourneymanCommands;
+import org.bitwisemadness.journeyman.data.ProfessionLoader;
+import org.bitwisemadness.journeyman.state.JourneymanAttachments;
 import org.slf4j.Logger;
 
 /**
@@ -22,6 +26,9 @@ public final class Journeyman {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public Journeyman(IEventBus modBus) {
+        JourneymanAttachments.ATTACHMENT_TYPES.register(modBus);
+        NeoForge.EVENT_BUS.addListener(ProfessionLoader::onAddReloadListeners);
+        NeoForge.EVENT_BUS.addListener(JourneymanCommands::onRegisterCommands);
         LOGGER.info("Journeyman initialized");
     }
 }

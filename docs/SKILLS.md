@@ -15,8 +15,11 @@ asserts.
   player touches) + **8 mastery professions** (the advanced set that deepens
   specific systems).
 - Every profession levels on the **RuneScape XP curve** to **level 99**:
-  `XP(L) = Σ_{l=1}^{L-1} floor((l + 300·2^(l/7)) / 4)` — level 99 =
-  **13,034,431** XP. The engine asserts this value in its GameTest.
+  `XP(L) = floor( (Σ_{l=1}^{L-1} floor(l + 300·2^(l/7))) / 4 )` — level 99 =
+  **13,034,431** XP. The engine asserts this value in its GameTest. Note the
+  floor placement: each term `l + 300·2^(l/7)` is floored, the terms are
+  summed, and the *total* is divided by four and floored - the RuneScape
+  Wiki's own implementation, not a per-term division.
 - **No job slots.** All 18 professions progress concurrently — the RuneScape
   model. A profession's level is its own gate: training it unlocks the next
   tier of what it controls.

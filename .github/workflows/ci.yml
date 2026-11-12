@@ -225,7 +225,7 @@ jobs:
           PACKAGE_READ_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.PACKAGE_READ_TOKEN || github.token }}
         run: >
-          ./gradlew checkstyleMain checkstyleTest checkstyleGametest
+          ./gradlew checkstyleMain checkstyleApi checkstyleTest checkstyleGametest
           --no-daemon --stacktrace
 
       # Enforced since #52. Spotless stays out of Gradle `check`

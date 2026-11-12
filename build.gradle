@@ -21,10 +21,13 @@ java {
 
 // Game tests compile against main but are never part of it, so the jar cannot
 // ship them. Declared before neoForge because the mods block joins it.
+// `api` is the pure-Java public surface: published as journeyman_api for
+// consumers to compile against, and embedded in the mod jar at runtime.
 sourceSets {
+    api
     gametest {
-        compileClasspath += sourceSets.main.output + configurations.compileClasspath
-        runtimeClasspath += output + sourceSets.main.output + configurations.runtimeClasspath
+        compileClasspath += sourceSets.main.output + sourceSets.api.output + configurations.compileClasspath
+        runtimeClasspath += output + sourceSets.main.output + sourceSets.api.output + configurations.runtimeClasspath
     }
 }
 
@@ -50,6 +53,10 @@ neoForge {
 
     mods {
         "${mod_id}" {
+            // api joins the mod so its classes load in dev runs (the gametest
+            // server's classpath does not carry bare source-set outputs); the
+            // jar embeds it at packaging time.
+            sourceSet sourceSets.api
             sourceSet sourceSets.main
             // Joined so @GameTestHolder is discovered in dev runs; still not jarred.
             sourceSet sourceSets.gametest
@@ -95,6 +102,16 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // The main source set compiles against (and embeds) the api source set;
+    // test and gametest reach it transitively or through their classpath lines.
+    implementation sourceSets.api.output
+}
+
+// The mod jar carries the api classes: consumers compile against the
+// journeyman_api artifact, and at runtime the mod itself provides them.
+tasks.named('jar', Jar).configure {
+    from sourceSets.api.output
 }
 
 test {
@@ -106,7 +123,7 @@ test {
 // Grade the run on the log summary: the task's exit code is not a reliable
 // signal. Keep expectedTests in sync with the @GameTest methods.
 tasks.matching { it.name == 'runGameTestServer' }.configureEach {
-    def expectedTests = 1
+    def expectedTests = 7
     doLast {
         def log = file('run/logs/latest.log')
         if (!log.exists()) {
@@ -137,6 +154,12 @@ tasks.matching { it.name == 'runGameTestServer' }.configureEach {
 
 // --- Publishing -------------------------------------------------------------
 
+// The api publication's artifact: the pure-Java classes only.
+tasks.register('apiJar', Jar) {
+    archiveBaseName = "${mod_id}_api"
+    from sourceSets.api.output
+}
+
 // release.yml tags, publish.yml drives this block. Keep the URL pointing at
 // THIS repository; local publishes may set gpr.user / gpr.key.
 publishing {
@@ -147,6 +170,22 @@ publishing {
             pom {
                 name = mod_name
                 description = mod_description
+                licenses {
+                    license {
+                        name = mod_license
+                    }
+                }
+            }
+        }
+        // The pure-Java read side other mods compile against; the mod jar
+        // embeds the same classes at runtime.
+        register('mavenApi', MavenPublication) {
+            artifactId = "${mod_id}_api"
+            version = mod_version
+            artifact tasks.named('apiJar')
+            pom {
+                name = 'Journeyman API'
+                description = 'Pure-Java read side of the Journeyman professions engine: the curve and the state queries.'
                 licenses {
                     license {
                         name = mod_license
